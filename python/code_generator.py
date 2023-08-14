@@ -2,10 +2,11 @@
 import os 
 import random
 import math
+import subprocess
 
-READ_DEPTH = 2     # No of registers for reading data (Output from chip)
-WRITE_DEPTH = 7    # No of registers for writing data (Input to chip)
-REG_WIDTH = 32      # Number of bits in each register
+READ_DEPTH = 8     # No of registers for reading data (Output from chip)
+WRITE_DEPTH = 8    # No of registers for writing data (Input to chip)
+REG_WIDTH = 8      # Number of bits in each register
 
 def generate_input_ports(num_ports):
     input_ports = ""
@@ -84,7 +85,7 @@ def insert_underscores_from_right(input_string, underscore_interval):
     underscored_string = "_".join(split_strings)[::-1]  # Reverse back and join with underscores
     return underscored_string
 
-def generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH):
+def generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH, ADDR_WIDTH):
     MEM_DEPTH = READ_DEPTH + WRITE_DEPTH + 1
     ADDR_BITS = math.ceil(math.log2(MEM_DEPTH))
     file_path = "./python/default.mem"
@@ -111,7 +112,7 @@ def generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH):
     code += "//---------------------------------------------------------------------------\n\n"
     code += "`timescale 1ns/1ps\n"
     code += "`default_nettype none\n"
-    code += "`include \"config.v\"\n\n"
+    code += f"`include \"config.v\"\n\n"
     code += "module sipo_piso (\n"
     code += "    input   wire    clk,\n"
     code += "    input   wire    rst,\n"
@@ -124,7 +125,7 @@ def generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH):
     code += ");\n\n" 
     code += "    // Instantiate where required as below\n"
     code += f"    // sipo_piso sipo_piso_inst (.clk(), .rst(), .strobe(), .wr_en(), .din(), .dout(), .rw_flag(),{inst});\n\n"
-    code += "    localparam ADDR_WIDTH = $clog2(`MEM_DEPTH);\n"
+    code += "    localparam ADDR_WIDTH = `ADDR_WIDTH;\n"
     code += "    localparam SIPO_WIDTH = ADDR_WIDTH + `REG_WIDTH;\n"
     code += "    localparam PISO_WIDTH = SIPO_WIDTH;\n"
     code += "    localparam COUNT_WIDTH = $clog2(SIPO_WIDTH)-1;\n"
@@ -172,7 +173,7 @@ def generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH):
     code += "            sipo_reg <= 'b0;\n"
     code += "            piso_addr <= 'b0;\n"
     code += "            piso_addr_count <= 'b0;\n"
-    code += f"            mem_wr0 <= {REG_WIDTH}'h3D1D_2400;\n"
+    code += f"            mem_wr0 <= {REG_WIDTH}'h0;\n"
     for i in range(WRITE_DEPTH):
         code += f"            mem_wr{i+1} <= {REG_WIDTH}'b{insert_underscores_from_right(str(data_array[i]), 4)};\n"
         # code += f"            mem_wr{i+1} <= {REG_WIDTH}'h{insert_underscores_from_right(hex(int(str(data_array[i]), 2))[2:].upper(), 4)};\n"
@@ -207,7 +208,7 @@ def generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH):
     code += "                            rw_flag <= 1'b0;\n"
     code += "                        end\n"
     code += "                    end else begin // PISO mode\n"
-    code += "                        if(piso_addr_count <= $clog2(`MEM_DEPTH)) begin\n"
+    code += "                        if(piso_addr_count <= `ADDR_WIDTH) begin\n"
     code += "                            piso_addr [piso_addr_count] <= din;\n"
     code += "                            piso_addr_count <= piso_addr_count + 1;\n"
     code += "                            status <= PROCESS;\n"
@@ -240,32 +241,32 @@ def generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH):
     code += "    end\n\n"
     code += "   always @(negedge clk) begin\n"
     code += "       case (status)\n"
-    code += "           PROCESS: begin\n\n"
-    code += "               if (~wr_en) begin\n\n"
-    code += "                   if(piso_addr_count > $clog2(`MEM_DEPTH)) begin\n\n"
-    code += "                       status <= SEND;\n\n"
-    code += "                   end\n\n"
-    code += "               end\n\n"
-    code += "           end\n\n"
-    code += "           SEND: begin\n\n"
-    code += "               if (count < `REG_WIDTH-1) begin\n\n"
-    code += "                   count <= count + 1;\n\n"
-    code += "                   status <= SEND;\n\n"
-    code += "                   rw_flag <= 1'b1;\n\n"
-    code += "               end else begin\n\n"
-    code += "                   count <=  'b0;\n\n"
-    code += "                   status <= IDLE;\n\n"
-    code += "                   rw_flag <= 1'b0;\n\n"
-    code += "               end\n\n"
-    code += "           end\n\n"
-    code += "           default status <= status;\n\n"
-    code += "       endcase\n\n"
+    code += "           PROCESS: begin\n"
+    code += "               if (~wr_en) begin\n"
+    code += "                   if(piso_addr_count > `ADDR_WIDTH) begin\n"
+    code += "                       status <= SEND;\n"
+    code += "                   end\n"
+    code += "               end\n"
+    code += "           end\n"
+    code += "           SEND: begin\n"
+    code += "               if (count < `REG_WIDTH-1) begin\n"
+    code += "                   count <= count + 1;\n"
+    code += "                   status <= SEND;\n"
+    code += "                   rw_flag <= 1'b1;\n"
+    code += "               end else begin\n"
+    code += "                   count <=  'b0;\n"
+    code += "                   status <= IDLE;\n"
+    code += "                   rw_flag <= 1'b0;\n"
+    code += "               end\n"
+    code += "           end\n"
+    code += "           default status <= status;\n"
+    code += "       endcase\n"
     code += "   end\n\n"
     code += "endmodule\n\n"
     code += "`default_nettype wire\n"
     return code
 
-def generate_sipo_piso_tb(WRITE_DEPTH, READ_DEPTH, REG_WIDTH):
+def generate_sipo_piso_tb(WRITE_DEPTH, READ_DEPTH, REG_WIDTH, ADDR_WIDTH):
     MEM_DEPTH = READ_DEPTH + WRITE_DEPTH + 1
     ADDR_BITS = math.ceil(math.log2(MEM_DEPTH))
     code = ''
@@ -284,11 +285,12 @@ def generate_sipo_piso_tb(WRITE_DEPTH, READ_DEPTH, REG_WIDTH):
     code += "//---------------------------------------------------------------------------\n\n"
     code += "`timescale 1ns/1ps\n"
     code += "`default_nettype none\n"
-    code += "`include \"config.v\"\n\n"
+    code += f"`include \"config.v\"\n\n"
     code += "module sipo_piso_tb ();\n\n"
-    code += "    localparam ADDR_WIDTH = $clog2(`MEM_DEPTH)-1;\n"
+    code += "    localparam ADDR_WIDTH = `ADDR_WIDTH;\n"
     code += "    localparam SIPO_WIDTH = ADDR_WIDTH + `REG_WIDTH;\n"
     code += "    localparam PISO_WIDTH = SIPO_WIDTH;\n\n"
+    code += f"    integer seed = {random.randint(0, 99)}\n;"
     code += "    reg     clk;\n"
     code += "    reg     rst;\n"
     code += "    reg     strobe;\n"
@@ -298,17 +300,19 @@ def generate_sipo_piso_tb(WRITE_DEPTH, READ_DEPTH, REG_WIDTH):
     code += "    wire    rw_flag;\n"
     code += "    `IO_TB\n"
     code += "    integer i, j;\n"
-    code += f"    reg     [ADDR_WIDTH + 1 + `REG_WIDTH:0]  mem [`MEM_DEPTH:0];\n"
-    code += "    reg     [ADDR_WIDTH + 1 + `REG_WIDTH:0]  mem_read;\n\n"
+    code += f"    reg     [ADDR_WIDTH + `REG_WIDTH:0]  mem [`MEM_DEPTH:0];\n"
+    code += "    reg     [ADDR_WIDTH + `REG_WIDTH:0]  mem_read;\n\n"
     code += "    sipo_piso uut (.clk(clk), .rst(rst), .strobe(strobe), .wr_en(wr_en), .din(din), .dout(dout), .rw_flag(rw_flag), `IO_INST);\n\n"
     code += "    initial begin\n"
+    code += "        $dumpfile(\"sipo_psio.vcd\");"
+    code += "        $dumpvars(0, sipo_piso_tb);"
     for i in range(WRITE_DEPTH):
         code += f"        mem[{i}] = {ADDR_BITS+REG_WIDTH}'h{hex_values[i]};\n"
     code += f"        mem[{WRITE_DEPTH}] = {ADDR_BITS+REG_WIDTH}'h{hex_values[WRITE_DEPTH]};\n"
     code += "        clk = 0; rst = 0; strobe = 0;\n"
     code += "        wr_en = 0; din = 0; mem_read = 'b0;\n"
     for i in range(READ_DEPTH):
-        code += f"        rd_{i+1} = $random();\n"
+        code += f"        rd_{i+1} = $random(seed);\n"
     for i in range(READ_DEPTH):
         code += f"        mem[{WRITE_DEPTH+1+i}] = {{{ADDR_BITS}'d{WRITE_DEPTH+1+i}, rd_{i+1}}};\n"
     code += "        #1  rst = 1;\n"
@@ -351,7 +355,7 @@ def generate_sipo_piso_tb(WRITE_DEPTH, READ_DEPTH, REG_WIDTH):
     code += "                #10 $finish();\n"
     code += "            end\n"
     code += "        end\n"
-    code += "        #1000 $display(\"SIPO and PISO have successfully passed read and write test.\");\n"
+    code += "        #100 $display(\"SIPO and PISO have successfully passed read and write test.\");\n"
     code += "        $finish();\n"
     code += "    end\n\n"
     code += "endmodule\n\n"
@@ -397,13 +401,15 @@ def main():
     input_tb = generate_input_tb(READ_DEPTH)
     output_tb = generate_output_tb(WRITE_DEPTH)
     io_inst = generate_inst_io(READ_DEPTH, WRITE_DEPTH)
+    ADDR_WIDTH = math.floor(math.log2(READ_DEPTH + WRITE_DEPTH))
     
 
     with open("./rtl/config.v", "w") as f:
         f.write("`define REG_WIDTH %i\n" %REG_WIDTH)
         f.write("`define READ_DEPTH %i\n" %READ_DEPTH)
         f.write("`define WRITE_DEPTH %i\n" %WRITE_DEPTH)
-        f.write("`define MEM_DEPTH (`READ_DEPTH + `WRITE_DEPTH)\n\n")
+        f.write("`define MEM_DEPTH (`READ_DEPTH + `WRITE_DEPTH)\n")
+        f.write("`define ADDR_WIDTH %i\n\n" %ADDR_WIDTH)
         f.write("`define IO_PORTS\t\\\n")
         f.write(input_ports)
         f.write(output_ports)
@@ -414,10 +420,10 @@ def main():
         f.write(io_inst)
 
     with open("./rtl/sipo_piso_slave.v", "w") as f:
-        f.write(generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH))
+        f.write(generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH, ADDR_WIDTH))
     
     with open("./rtl/sipo_piso_slave_tb.v", "w") as f:
-        f.write(generate_sipo_piso_tb(WRITE_DEPTH, READ_DEPTH, REG_WIDTH))
+        f.write(generate_sipo_piso_tb(WRITE_DEPTH, READ_DEPTH, REG_WIDTH, ADDR_WIDTH))
 
 if __name__ == "__main__":
     main()

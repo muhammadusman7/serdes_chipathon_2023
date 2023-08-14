@@ -1,5 +1,5 @@
 // Title: SIPO PSIO V 1.0 (No Changelog)
-// Created: August 07, 2023
+// Created: August 14, 2023
 // Updated: 
 //---------------------------------------------------------------------------
 // Testbench for Serial In Parallel Out and Parallel in Serial Out Module
@@ -13,11 +13,12 @@
 
 module sipo_piso_tb ();
 
-    localparam ADDR_WIDTH = $clog2(`MEM_DEPTH)-1;
+    localparam ADDR_WIDTH = `ADDR_WIDTH;
     localparam SIPO_WIDTH = ADDR_WIDTH + `REG_WIDTH;
     localparam PISO_WIDTH = SIPO_WIDTH;
 
-    reg     clk;
+    integer seed = 90
+;    reg     clk;
     reg     rst;
     reg     strobe;
     reg     wr_en;
@@ -26,26 +27,39 @@ module sipo_piso_tb ();
     wire    rw_flag;
     `IO_TB
     integer i, j;
-    reg     [ADDR_WIDTH + 1 + `REG_WIDTH:0]  mem [`MEM_DEPTH:0];
-    reg     [ADDR_WIDTH + 1 + `REG_WIDTH:0]  mem_read;
+    reg     [ADDR_WIDTH + `REG_WIDTH:0]  mem [`MEM_DEPTH:0];
+    reg     [ADDR_WIDTH + `REG_WIDTH:0]  mem_read;
 
     sipo_piso uut (.clk(clk), .rst(rst), .strobe(strobe), .wr_en(wr_en), .din(din), .dout(dout), .rw_flag(rw_flag), `IO_INST);
 
     initial begin
-        mem[0] = 36'h0_D2F8_B804;
-        mem[1] = 36'h1_2175_00CC;
-        mem[2] = 36'h2_8839_E68F;
-        mem[3] = 36'h3_722C_D01A;
-        mem[4] = 36'h4_C0B8_ED5D;
-        mem[5] = 36'h5_F6F7_3141;
-        mem[6] = 36'h6_C45A_C632;
-        mem[7] = 36'h7_B1AC_E73A;
+        $dumpfile("sipo_psio.vcd");        $dumpvars(0, sipo_piso_tb);        mem[0] = 13'h0A2;
+        mem[1] = 13'h15D;
+        mem[2] = 13'h283;
+        mem[3] = 13'h3C6;
+        mem[4] = 13'h433;
+        mem[5] = 13'h52B;
+        mem[6] = 13'h635;
+        mem[7] = 13'h715;
+        mem[8] = 13'h847;
         clk = 0; rst = 0; strobe = 0;
         wr_en = 0; din = 0; mem_read = 'b0;
-        rd_1 = $random();
-        rd_2 = $random();
-        mem[8] = {4'd8, rd_1};
-        mem[9] = {4'd9, rd_2};
+        rd_1 = $random(seed);
+        rd_2 = $random(seed);
+        rd_3 = $random(seed);
+        rd_4 = $random(seed);
+        rd_5 = $random(seed);
+        rd_6 = $random(seed);
+        rd_7 = $random(seed);
+        rd_8 = $random(seed);
+        mem[9] = {5'd9, rd_1};
+        mem[10] = {5'd10, rd_2};
+        mem[11] = {5'd11, rd_3};
+        mem[12] = {5'd12, rd_4};
+        mem[13] = {5'd13, rd_5};
+        mem[14] = {5'd14, rd_6};
+        mem[15] = {5'd15, rd_7};
+        mem[16] = {5'd16, rd_8};
         #1  rst = 1;
         #10 rst = 0;
     end
@@ -59,24 +73,24 @@ module sipo_piso_tb ();
     initial begin
         // Writing through SIPO
         #2; wr_en = 1;
-        for (i=0; i<10; i=i+1) begin
+        for (i=0; i<17; i=i+1) begin
             #50 strobe = 0; #10 strobe=1; #10 strobe = 0;
-            for (j=0; j<36; j=j+1) begin
+            for (j=0; j<13; j=j+1) begin
                 din = mem[i][j];
                 #10;
             end
         end
         #50 wr_en = 0;
         // Reading through PISO
-        for (i=0; i<10; i=i+1) begin
+        for (i=0; i<17; i=i+1) begin
             #50 strobe = 0; #10 strobe=1; #10 strobe = 0;
-            mem_read[35:32] = i;
-            for (j=0; j<36; j=j+1) begin
-                if (j<4) begin
-                    din = mem_read[32+j];
+            mem_read[12:8] = i;
+            for (j=0; j<13; j=j+1) begin
+                if (j<5) begin
+                    din = mem_read[8+j];
                     #10;
                 end else begin
-                    mem_read[j-4] = dout;
+                    mem_read[j-5] = dout;
                     din = 0;
                     #10;
                 end
@@ -88,7 +102,7 @@ module sipo_piso_tb ();
                 #10 $finish();
             end
         end
-        #1000 $display("SIPO and PISO have successfully passed read and write test.");
+        #100 $display("SIPO and PISO have successfully passed read and write test.");
         $finish();
     end
 
