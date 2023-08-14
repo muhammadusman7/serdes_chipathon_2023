@@ -55,7 +55,11 @@ Follow these steps to generate Verilog code using the provided Python script:
    ```bash
    cd serdes_chipathon_2023
    ```
-3. Before code generation you can modify the parameters in the python code `code_generator.py` on `LINE 7, 8, and 9` as mentioned in Purpose of the Python Code using `READ_DEPTH`, `WRITE_DEPTH`, and `REG_WIDTH` using your favorite text editor:
+3. There is file in `/serdes_chipathon_2023/python` directory named `default_slave.mem` where you can specify the values of your choice upon system `reset`. By default all memory locations would be reset to zeros, and if you want to set values of your choice upon `reset` you can mention there in the `ADDR : DATA` format for all addresses of your choice each in a line. e.g if `REG_WIDTH` is `8` and you want to set a write address `5` to be `8'hAE`, you should add the line in `default_slave.mem` as follows: 
+   ```bash
+   5 : 10101110
+   ```
+4. Before code generation you can modify the parameters in the python code `code_generator.py` on `LINE 7, 8, and 9` as mentioned in Purpose of the Python Code using `READ_DEPTH`, `WRITE_DEPTH`, and `REG_WIDTH` using your favorite text editor:
    ```bash
    # e.g. Using Gedit
    gedit ./python/code_generator.py
@@ -70,13 +74,13 @@ Follow these steps to generate Verilog code using the provided Python script:
     REG_WIDTH = 8      # Number of bits in each register
     ...
     ```
-4. Run the Python script `serdes_chipathon_2023/python/code_generator.py` (it generates Verilog codes in `serdes_chipathon_2023/rtl` directory) using the following command:
+5. Run the Python script `serdes_chipathon_2023/python/code_generator.py` (it generates Verilog codes in `serdes_chipathon_2023/rtl` directory) using the following command:
    ```bash
    python3 ./python/code_generator.py
    ```
-5. Running the Python script will generate the Verilog RTL and Testbench code with specified configuration in step 3 in the `/serdes_chipathon_2023/rtl` directory.
+6. Running the Python script will generate the Verilog RTL and Testbench code with specified configuration in step 3 in the `/serdes_chipathon_2023/rtl` directory.
 
-You can regenerate the Verilog codes with changed configuration if required, by repeating `Step 3` to `Step 5`.
+You can regenerate the Verilog codes with changed configuration if required, by repeating `Step 3` to `Step 6`.
 
 ## Running the Simulation
 Once you have generated the Verilog code using the Python script, you can run simulations to test the behavior of the SIPO PISO module with your chosen configuration. Here are the steps to run the simulation:

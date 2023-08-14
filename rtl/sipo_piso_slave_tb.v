@@ -1,4 +1,4 @@
-// Title: SIPO PSIO V 1.0 (No Changelog)
+// Title: SIPO PISO V 1.0 (No Changelog)
 // Created: August 14, 2023
 // Updated: 
 //---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ module sipo_piso_tb ();
     localparam SIPO_WIDTH = ADDR_WIDTH + `REG_WIDTH;
     localparam PISO_WIDTH = SIPO_WIDTH;
 
-    integer seed = 90
+    integer seed = 18
 ;    reg     clk;
     reg     rst;
     reg     strobe;
@@ -33,15 +33,17 @@ module sipo_piso_tb ();
     sipo_piso uut (.clk(clk), .rst(rst), .strobe(strobe), .wr_en(wr_en), .din(din), .dout(dout), .rw_flag(rw_flag), `IO_INST);
 
     initial begin
-        $dumpfile("sipo_psio.vcd");        $dumpvars(0, sipo_piso_tb);        mem[0] = 13'h0A2;
-        mem[1] = 13'h15D;
-        mem[2] = 13'h283;
-        mem[3] = 13'h3C6;
-        mem[4] = 13'h433;
-        mem[5] = 13'h52B;
-        mem[6] = 13'h635;
-        mem[7] = 13'h715;
-        mem[8] = 13'h847;
+        $dumpfile("sipo_piso.vcd");
+        $dumpvars(0, sipo_piso_tb);
+        mem[0] = 13'h0AE;
+        mem[1] = 13'h12E;
+        mem[2] = 13'h241;
+        mem[3] = 13'h30E;
+        mem[4] = 13'h400;
+        mem[5] = 13'h5D3;
+        mem[6] = 13'h602;
+        mem[7] = 13'h778;
+        mem[8] = 13'h824;
         clk = 0; rst = 0; strobe = 0;
         wr_en = 0; din = 0; mem_read = 'b0;
         rd_1 = $random(seed);

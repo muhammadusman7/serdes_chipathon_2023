@@ -1,4 +1,4 @@
-// Title: SIPO PSIO V 1.0 (No Changelog)
+// Title: SIPO PISO V 1.0 (No Changelog)
 // Created: August 14, 2023
 // Updated: 
 //---------------------------------------------------------------------------
@@ -37,22 +37,22 @@ module sipo_piso (
     reg     [COUNT_WIDTH:0]     count;
     reg     [SIPO_WIDTH:0]      sipo_data, discard;
     reg     [SIPO_WIDTH:0]      sipo_reg;
-    reg     [`REG_WIDTH-1:0]     mem_rd1;
-    reg     [`REG_WIDTH-1:0]     mem_rd2;
-    reg     [`REG_WIDTH-1:0]     mem_rd3;
-    reg     [`REG_WIDTH-1:0]     mem_rd4;
-    reg     [`REG_WIDTH-1:0]     mem_rd5;
-    reg     [`REG_WIDTH-1:0]     mem_rd6;
-    reg     [`REG_WIDTH-1:0]     mem_rd7;
-    reg     [`REG_WIDTH-1:0]     mem_rd8;
-    reg     [`REG_WIDTH-1:0]     mem_wr0;
-    reg     [`REG_WIDTH-1:0]     mem_wr1;
-    reg     [`REG_WIDTH-1:0]     mem_wr2;
-    reg     [`REG_WIDTH-1:0]     mem_wr3;
-    reg     [`REG_WIDTH-1:0]     mem_wr4;
-    reg     [`REG_WIDTH-1:0]     mem_wr5;
-    reg     [`REG_WIDTH-1:0]     mem_wr6;
-    reg     [`REG_WIDTH-1:0]     mem_wr7;
+    reg     [`REG_WIDTH-1:0]    mem_rd1;
+    reg     [`REG_WIDTH-1:0]    mem_rd2;
+    reg     [`REG_WIDTH-1:0]    mem_rd3;
+    reg     [`REG_WIDTH-1:0]    mem_rd4;
+    reg     [`REG_WIDTH-1:0]    mem_rd5;
+    reg     [`REG_WIDTH-1:0]    mem_rd6;
+    reg     [`REG_WIDTH-1:0]    mem_rd7;
+    reg     [`REG_WIDTH-1:0]    mem_rd8;
+    reg     [`REG_WIDTH-1:0]    mem_wr0;
+    reg     [`REG_WIDTH-1:0]    mem_wr1;
+    reg     [`REG_WIDTH-1:0]    mem_wr2;
+    reg     [`REG_WIDTH-1:0]    mem_wr3;
+    reg     [`REG_WIDTH-1:0]    mem_wr4;
+    reg     [`REG_WIDTH-1:0]    mem_wr5;
+    reg     [`REG_WIDTH-1:0]    mem_wr6;
+    reg     [`REG_WIDTH-1:0]    mem_wr7;
     reg     [`REG_WIDTH-1:0]     mem_wr8;
     reg     [`REG_WIDTH-1:0]     piso_data;
     reg     [`REG_WIDTH-1:0]     control_reg;
@@ -197,29 +197,30 @@ module sipo_piso (
         end
     end
 
-   always @(negedge clk) begin
-       case (status)
-           PROCESS: begin
-               if (~wr_en) begin
-                   if(piso_addr_count > `ADDR_WIDTH) begin
-                       status <= SEND;
-                   end
-               end
-           end
-           SEND: begin
-               if (count < `REG_WIDTH-1) begin
-                   count <= count + 1;
-                   status <= SEND;
-                   rw_flag <= 1'b1;
-               end else begin
-                   count <=  'b0;
-                   status <= IDLE;
-                   rw_flag <= 1'b0;
-               end
-           end
-           default status <= status;
-       endcase
-   end
+    always @(negedge clk) begin
+        case (status)
+            PROCESS: begin
+                if (~wr_en) begin
+                    if(piso_addr_count > `ADDR_WIDTH) begin
+                        status <= SEND;
+                        rw_flag <= 1'b1;
+                    end
+                end
+            end
+            SEND: begin
+                if (count < `REG_WIDTH-1) begin
+                    count <= count + 1;
+                    status <= SEND;
+                    rw_flag <= 1'b1;
+                end else begin
+                    count <=  'b0;
+                    status <= IDLE;
+                    rw_flag <= 1'b0;
+                end
+            end
+            default status <= status;
+        endcase
+    end
 
 endmodule
 
