@@ -1,6 +1,6 @@
 // Title: SIPO PISO V 1.0 (No Changelog)
 // Created: August 14, 2023
-// Updated: 
+// Updated: August 20, 2023
 //---------------------------------------------------------------------------
 // Serial In Parallel Out and Parallel in Serial Out Module
 // 
@@ -37,14 +37,14 @@ module sipo_piso (
     reg     [COUNT_WIDTH:0]     count;
     reg     [SIPO_WIDTH:0]      sipo_data, discard;
     reg     [SIPO_WIDTH:0]      sipo_reg;
-    reg     [`REG_WIDTH-1:0]    mem_rd1;
-    reg     [`REG_WIDTH-1:0]    mem_rd2;
-    reg     [`REG_WIDTH-1:0]    mem_rd3;
-    reg     [`REG_WIDTH-1:0]    mem_rd4;
-    reg     [`REG_WIDTH-1:0]    mem_rd5;
-    reg     [`REG_WIDTH-1:0]    mem_rd6;
-    reg     [`REG_WIDTH-1:0]    mem_rd7;
-    reg     [`REG_WIDTH-1:0]    mem_rd8;
+    reg     [`REG_WIDTH-1:0]    mem_rd1, mem_cdc_rd1;
+    reg     [`REG_WIDTH-1:0]    mem_rd2, mem_cdc_rd2;
+    reg     [`REG_WIDTH-1:0]    mem_rd3, mem_cdc_rd3;
+    reg     [`REG_WIDTH-1:0]    mem_rd4, mem_cdc_rd4;
+    reg     [`REG_WIDTH-1:0]    mem_rd5, mem_cdc_rd5;
+    reg     [`REG_WIDTH-1:0]    mem_rd6, mem_cdc_rd6;
+    reg     [`REG_WIDTH-1:0]    mem_rd7, mem_cdc_rd7;
+    reg     [`REG_WIDTH-1:0]    mem_rd8, mem_cdc_rd8;
     reg     [`REG_WIDTH-1:0]    mem_wr0;
     reg     [`REG_WIDTH-1:0]    mem_wr1;
     reg     [`REG_WIDTH-1:0]    mem_wr2;
@@ -100,28 +100,28 @@ module sipo_piso (
             mem_wr2 <= 8'b1010_1010;
             mem_wr3 <= 8'b1100_1100;
             mem_wr4 <= 8'b0;
-            mem_wr5 <= 8'b101_0101;
+            mem_wr5 <= 8'b0101_0101;
             mem_wr6 <= 8'b0;
             mem_wr7 <= 8'b0;
             mem_wr8 <= 8'b0;
-            mem_rd1 <= 8'b0;
-            mem_rd2 <= 8'b0;
-            mem_rd3 <= 8'b0;
-            mem_rd4 <= 8'b0;
-            mem_rd5 <= 8'b0;
-            mem_rd6 <= 8'b0;
-            mem_rd7 <= 8'b0;
-            mem_rd8 <= 8'b0;
+            mem_rd1 <= 8'b0;	, mem_cdc_rd1 <= 8'b0;
+            mem_rd2 <= 8'b0;	, mem_cdc_rd2 <= 8'b0;
+            mem_rd3 <= 8'b0;	, mem_cdc_rd3 <= 8'b0;
+            mem_rd4 <= 8'b0;	, mem_cdc_rd4 <= 8'b0;
+            mem_rd5 <= 8'b0;	, mem_cdc_rd5 <= 8'b0;
+            mem_rd6 <= 8'b0;	, mem_cdc_rd6 <= 8'b0;
+            mem_rd7 <= 8'b0;	, mem_cdc_rd7 <= 8'b0;
+            mem_rd8 <= 8'b0;	, mem_cdc_rd8 <= 8'b0;
             discard <= 8'b0;
         end else begin
-            mem_rd1 <= rd_1;
-            mem_rd2 <= rd_2;
-            mem_rd3 <= rd_3;
-            mem_rd4 <= rd_4;
-            mem_rd5 <= rd_5;
-            mem_rd6 <= rd_6;
-            mem_rd7 <= rd_7;
-            mem_rd8 <= rd_8;
+            mem_rd1 <= mem_cdc_rd1;	mem_cdc_rd1 <= rd_1;
+            mem_rd2 <= mem_cdc_rd2;	mem_cdc_rd2 <= rd_2;
+            mem_rd3 <= mem_cdc_rd3;	mem_cdc_rd3 <= rd_3;
+            mem_rd4 <= mem_cdc_rd4;	mem_cdc_rd4 <= rd_4;
+            mem_rd5 <= mem_cdc_rd5;	mem_cdc_rd5 <= rd_5;
+            mem_rd6 <= mem_cdc_rd6;	mem_cdc_rd6 <= rd_6;
+            mem_rd7 <= mem_cdc_rd7;	mem_cdc_rd7 <= rd_7;
+            mem_rd8 <= mem_cdc_rd8;	mem_cdc_rd8 <= rd_8;
             case (status)
                 IDLE: begin
                     count <= 'b0;

@@ -103,8 +103,8 @@ def generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH, ADDR_WIDTH):
     inst += f" .wr_{WRITE_DEPTH}()"
     
     code += "// Title: SIPO PISO V 1.0 (No Changelog)\n"
-    code += f"// Created: {formatted_date}\n"
-    code += "// Updated: \n"
+    code += f"// Created: August 14, 2023\n"
+    code += f"// Updated: {formatted_date}\n"
     code += "//---------------------------------------------------------------------------\n"
     code += "// Serial In Parallel Out and Parallel in Serial Out Module\n"
     code += "// \n"
@@ -137,7 +137,7 @@ def generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH, ADDR_WIDTH):
     code += "    reg     [SIPO_WIDTH:0]      sipo_data, discard;\n"
     code += "    reg     [SIPO_WIDTH:0]      sipo_reg;\n"
     for i in range(READ_DEPTH):
-        code += f"    reg     [`REG_WIDTH-1:0]    mem_rd{i+1};\n"
+        code += f"    reg     [`REG_WIDTH-1:0]    mem_rd{i+1}, mem_cdc_rd{i+1};\n"
     for i in range(WRITE_DEPTH):
         code += f"    reg     [`REG_WIDTH-1:0]    mem_wr{i};\n"
     code += f"    reg     [`REG_WIDTH-1:0]     mem_wr{WRITE_DEPTH};\n"
@@ -178,11 +178,11 @@ def generate_sipo_piso_slave(WRITE_DEPTH, READ_DEPTH, REG_WIDTH, ADDR_WIDTH):
         code += f"            mem_wr{i+1} <= {REG_WIDTH}'b{insert_underscores_from_right(str(data_array[i]), 4)};\n"
         # code += f"            mem_wr{i+1} <= {REG_WIDTH}'h{insert_underscores_from_right(hex(int(str(data_array[i]), 2))[2:].upper(), 4)};\n"
     for i in range(READ_DEPTH):
-        code += f"            mem_rd{i+1} <= {REG_WIDTH}'b0;\n"
+        code += f"            mem_rd{i+1} <= {REG_WIDTH}'b0;\t, mem_cdc_rd{i+1} <= {REG_WIDTH}'b0;\n"
     code += f"            discard <= {REG_WIDTH}'b0;\n"
     code += "        end else begin\n"
     for i in range(READ_DEPTH):
-        code += f"            mem_rd{i+1} <= rd_{i+1};\n"
+        code += f"            mem_rd{i+1} <= mem_cdc_rd{i+1};\tmem_cdc_rd{i+1} <= rd_{i+1};\n"
     code += "            case (status)\n"
     code += "                IDLE: begin\n"
     code += "                    count <= 'b0;\n"
@@ -277,8 +277,8 @@ def generate_sipo_piso_tb(WRITE_DEPTH, READ_DEPTH, REG_WIDTH, ADDR_WIDTH):
     formatted_date = current_date.strftime("%B %d, %Y")
     
     code += "// Title: SIPO PISO V 1.0 (No Changelog)\n"
-    code += f"// Created: {formatted_date}\n"
-    code += "// Updated: \n"
+    code += f"// Created: August 14, 2023\n"
+    code += "// Updated: {formatted_date}\n"
     code += "//---------------------------------------------------------------------------\n"
     code += "// Testbench for Serial In Parallel Out and Parallel in Serial Out Module\n"
     code += "// \n"
@@ -377,14 +377,13 @@ def read_default_mem(file_path, mem_length):
     for line in lines:
         parts = line.strip().split(':')
         if len(parts) == 2:
-            index = int(parts[0].strip())
-            value = int(parts[1].strip())
+            index = str(parts[0].strip())
+            value = str(parts[1].strip())
             index_arr.append(index)
             value_arr.append(value)
-    
     for i in range(mem_length):
         try:
-            index = index_arr.index(i)
+            index = index_arr.index(str(i))
             found = True
         except ValueError:
             found = False
