@@ -1,6 +1,6 @@
 // Title: SIPO PISO V 1.0 (No Changelog)
 // Created: August 14, 2023
-// Updated: August 20, 2023
+// Updated: August 21, 2023
 //---------------------------------------------------------------------------
 // Serial In Parallel Out and Parallel in Serial Out Module
 // 
@@ -104,14 +104,14 @@ module sipo_piso (
             mem_wr6 <= 8'b0;
             mem_wr7 <= 8'b0;
             mem_wr8 <= 8'b0;
-            mem_rd1 <= 8'b0;	, mem_cdc_rd1 <= 8'b0;
-            mem_rd2 <= 8'b0;	, mem_cdc_rd2 <= 8'b0;
-            mem_rd3 <= 8'b0;	, mem_cdc_rd3 <= 8'b0;
-            mem_rd4 <= 8'b0;	, mem_cdc_rd4 <= 8'b0;
-            mem_rd5 <= 8'b0;	, mem_cdc_rd5 <= 8'b0;
-            mem_rd6 <= 8'b0;	, mem_cdc_rd6 <= 8'b0;
-            mem_rd7 <= 8'b0;	, mem_cdc_rd7 <= 8'b0;
-            mem_rd8 <= 8'b0;	, mem_cdc_rd8 <= 8'b0;
+            mem_rd1 <= 8'b0;	mem_cdc_rd1 <= 8'b0;
+            mem_rd2 <= 8'b0;	mem_cdc_rd2 <= 8'b0;
+            mem_rd3 <= 8'b0;	mem_cdc_rd3 <= 8'b0;
+            mem_rd4 <= 8'b0;	mem_cdc_rd4 <= 8'b0;
+            mem_rd5 <= 8'b0;	mem_cdc_rd5 <= 8'b0;
+            mem_rd6 <= 8'b0;	mem_cdc_rd6 <= 8'b0;
+            mem_rd7 <= 8'b0;	mem_cdc_rd7 <= 8'b0;
+            mem_rd8 <= 8'b0;	mem_cdc_rd8 <= 8'b0;
             discard <= 8'b0;
         end else begin
             mem_rd1 <= mem_cdc_rd1;	mem_cdc_rd1 <= rd_1;
@@ -133,32 +133,40 @@ module sipo_piso (
                         status <= IDLE;
                     end
                 end 
-                PROCESS: begin
-                    if (wr_en) begin    // SIPO mode
-                        if (count == SIPO_WIDTH) begin
-                            sipo_reg[count] <= din;
-                            count <= 'b0;
-                            status <= IDLE;
-                            rw_flag <= 1'b1;
-                        end else begin
-                            sipo_reg[count] <= din;
-                            count <= count + 1;
-                            status <= PROCESS;
-                            rw_flag <= 1'b0;
-                        end
-                    end else begin // PISO mode
-                        if(piso_addr_count <= `ADDR_WIDTH) begin
-                            piso_addr [piso_addr_count] <= din;
-                            piso_addr_count <= piso_addr_count + 1;
-                            status <= PROCESS;
-                        end else begin
-                            status <= SEND;
-                            rw_flag <= 1'b1;
+                    PROCESS: begin
+                    if(strobe) begin
+                        status <= IDLE;
+                    end else begin
+                        if (wr_en) begin    // SIPO mode
+                            if (count == SIPO_WIDTH) begin
+                                sipo_reg[count] <= din;
+                                count <= 'b0;
+                                status <= IDLE;
+                                rw_flag <= 1'b1;
+                            end else begin
+                                sipo_reg[count] <= din;
+                                count <= count + 1;
+                                status <= PROCESS;
+                                rw_flag <= 1'b0;
+                            end
+                        end else begin // PISO mode
+                            if(piso_addr_count <= `ADDR_WIDTH) begin
+                                piso_addr [piso_addr_count] <= din;
+                                piso_addr_count <= piso_addr_count + 1;
+                                status <= PROCESS;
+                            end else begin
+                                status <= SEND;
+                                rw_flag <= 1'b1;
+                            end
                         end
                     end
                 end
                 SEND: begin
-                    status <= SEND;
+                    if (strobe) begin
+                        status <= IDLE;
+                    end else begin
+                        status <= SEND;
+                    end
                 end
                 default status <= IDLE;
             endcase
@@ -214,7 +222,11 @@ module sipo_piso (
                     rw_flag <= 1'b1;
                 end else begin
                     count <=  'b0;
-                    status <= IDLE;
+                    if (control_reg[1:0] == 2'b01) begin
+                        status <= SEND;
+                    end else begin
+                        status <= IDLE;
+                    end
                     rw_flag <= 1'b0;
                 end
             end

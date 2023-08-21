@@ -17,8 +17,8 @@ module sipo_piso_tb ();
     localparam SIPO_WIDTH = ADDR_WIDTH + `REG_WIDTH;
     localparam PISO_WIDTH = SIPO_WIDTH;
 
-    integer seed = 59
-;    reg     clk;
+    integer seed = 72;
+    reg     clk;
     reg     rst;
     reg     strobe;
     reg     wr_en;
@@ -35,15 +35,15 @@ module sipo_piso_tb ();
     initial begin
         $dumpfile("sipo_piso.vcd");
         $dumpvars(0, sipo_piso_tb);
-        mem[0] = 13'h00D;
-        mem[1] = 13'h141;
-        mem[2] = 13'h2E4;
-        mem[3] = 13'h3BA;
-        mem[4] = 13'h4AF;
-        mem[5] = 13'h5AF;
-        mem[6] = 13'h6D5;
-        mem[7] = 13'h7E4;
-        mem[8] = 13'h827;
+        mem[0] = 13'h0;
+        mem[1] = 13'h12B;
+        mem[2] = 13'h2F7;
+        mem[3] = 13'h399;
+        mem[4] = 13'h4E5;
+        mem[5] = 13'h5E7;
+        mem[6] = 13'h6E2;
+        mem[7] = 13'h77C;
+        mem[8] = 13'h8DC;
         clk = 0; rst = 0; strobe = 0;
         wr_en = 0; din = 0; mem_read = 'b0;
         rd_1 = $random(seed);
@@ -105,7 +105,29 @@ module sipo_piso_tb ();
             end
         end
         #100 $display("SIPO and PISO have successfully passed read and write test.");
-        $finish();
+        // Reading through PISO in brust mode
+        // First write to control_reg[1:0] = 2'b01 (Read brust mode)
+        #2; wr_en = 1;
+        mem[0] = 13'h0001;
+        #50 strobe = 0; #10 strobe=1; #10 strobe = 0;
+        for (j=0; j<13; j=j+1) begin
+            din = mem[0][j];
+            #10;
+        end
+        #50 wr_en = 0; strobe = 0; #10 strobe=1; #10 strobe = 0;
+        mem_read[12:8] = 16; // Reading from address 16 in brust mode
+        for (j=0; j<13; j=j+1) begin
+            if (j<5) begin
+                din = mem_read[8+j];
+                #10;
+            end else begin
+                mem_read[j-5] = dout;
+                din = 0;
+                #10;
+            end
+        end
+        // To observe brust mode
+        #1000 $finish();
     end
 
 endmodule

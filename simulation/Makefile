@@ -19,7 +19,7 @@ sim_inc: clean
 	@irun -f files_rtl.f -access +rwc -incdir ../rtl -timescale 1ns/1ps -notimingcheck -overwrite
 
 sim_iv: clean vvp_cmd
-	gtkwave sipo_psio.vcd
+	gtkwave sipo_piso.vcd
 vvp_cmd: iverilog_cmd
 	vvp $(SIM_EXE)
 iverilog_cmd:
